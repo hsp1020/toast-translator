@@ -42,7 +42,7 @@ async def fetch_and_retry(client: httpx.AsyncClient, id: str, url: str, params: 
 async def get_tmdb_data(client: httpx.AsyncClient, id: str, source: str) -> dict:
     params = {
         "external_source": source,
-        "language": "it-IT",
+        "language": "ko-KR",
         "api_key": TMDB_API_KEY
     }
 
