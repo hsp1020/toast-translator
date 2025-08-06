@@ -1,23 +1,18 @@
 /*
 const addonBlackList = [
     "org.stremio.mammamia",                 // Mamma Mia
-    "com.linvo.stremiochannels",            // Youtube
-    "org.community.orion",                  // Orion
-    "stremio.addons.mediafusion|elfhosted", // MediaFusion Elfhosted
-    "org.stremio.thepiratebay-catalog",     // TPB Catalog
-    "org.zoropogaddon",                     // One Piece Catalog
-    "com.noone.stremio-trakt-up-next",      // Trakt Up Next
-    "community.usatv",                      // USA TV
-    "community.argentinatv",                // Argentina TV
-    "tmdb-addon",                           // TMDB Addon
-    "pw.ers.concerts"                       // Music Concerts
 ]
 */
 
 const compatibilityList = [
     "com.linvo.cinemeta",               // Cinemeta
     "community.anime.kitsu",            // Kitsu 
-    "org.stremio.animecatalogs",        // Anime Catalogs
+    "org.stremio.animecatalogs",        // Anime Catalog
+    "tmdb-addon",                       // TMDB Addon
+    "org.stremio.aiolists",
+    "com.aiostreams.viren070",
+    "com.aiostreams.viren070.ed7de9be-ad4",
+    "com.aiostreams.viren070.",
     "marcojoao.ml.cyberflix.catalog",   // Cyberflix Catalogs
     "pw.ers.netflix-catalog",           // Streaming Catalogs
     "org.trakt.",                       // Trakt Stremio Official
