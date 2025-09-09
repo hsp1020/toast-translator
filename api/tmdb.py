@@ -42,7 +42,7 @@ async def fetch_and_retry(client: httpx.AsyncClient, id: str, url: str, params={
 async def get_tmdb_data(client: httpx.AsyncClient, id: str, source: str) -> dict:
     params = {
         "external_source": source,
-        "language": "it-IT",
+        "language": "ko-KR",
         "api_key": TMDB_API_KEY
     }
 
@@ -59,7 +59,7 @@ async def get_tmdb_data(client: httpx.AsyncClient, id: str, source: str) -> dict
 async def get_movie_details(client: httpx.AsyncClient, id: str) -> dict:
     params = {
         "api_key": TMDB_API_KEY,
-        "language": "it-IT",
+        "language": "ko-KR",
         "append_to_response": "credits,videos,images",
         "include_image_language": "it,null"
     }
@@ -71,7 +71,7 @@ async def get_movie_details(client: httpx.AsyncClient, id: str) -> dict:
 async def get_series_details(client: httpx.AsyncClient, id: str) -> dict:
     params = {
         "api_key": TMDB_API_KEY,
-        "language": "it-IT",
+        "language": "ko-KR",
         "append_to_response": "external_ids,credits,videos,images",
         "include_image_language": "it,null"
     }
@@ -82,7 +82,7 @@ async def get_series_details(client: httpx.AsyncClient, id: str) -> dict:
 # Get series detail with cast video and images
 async def get_season_details(client: httpx.AsyncClient, season_id: str, season_number) -> dict:
     params = {
-        "language": "it-IT",
+        "language": "ko-KR",
         "append_to_response": "external_ids",
         "api_key": TMDB_API_KEY
     }
