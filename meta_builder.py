@@ -181,14 +181,14 @@ def extract_logo(fanart_data: dict, tmdb_data: dict) -> str:
     for logo in fanart_data.get('hdmovielogo', []):
         if logo['lang'] == 'en':
             en_logo = logo['url']
-        elif logo['lang'] == 'it':
+        elif logo['lang'] == 'ko':
             return logo['url']
     
     # Try normal logo
     for logo in fanart_data.get('movielogo', []):
         if logo['lang'] == 'en':
             en_logo = logo['url']
-        elif logo['lang'] == 'it':
+        elif logo['lang'] == 'ko':
             return logo['url']
         
     return en_logo
