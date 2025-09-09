@@ -61,7 +61,7 @@ async def get_movie_details(client: httpx.AsyncClient, id: str) -> dict:
         "api_key": TMDB_API_KEY,
         "language": "ko-KR",
         "append_to_response": "credits,videos,images",
-        "include_image_language": "it,null"
+        "include_image_language": "ko,null"
     }
     url = f"https://api.themoviedb.org/3/movie/{id}"
     return await fetch_and_retry(client, id, url, params=params)
@@ -73,7 +73,7 @@ async def get_series_details(client: httpx.AsyncClient, id: str) -> dict:
         "api_key": TMDB_API_KEY,
         "language": "ko-KR",
         "append_to_response": "external_ids,credits,videos,images",
-        "include_image_language": "it,null"
+        "include_image_language": "ko,null"
     }
     url = f"https://api.themoviedb.org/3/tv/{id}"
     return await fetch_and_retry(client, id, url, params=params)
