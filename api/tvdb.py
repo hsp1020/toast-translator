@@ -72,7 +72,7 @@ async def get_translated_episodes(client: httpx.AsyncClient, series_id: int, pag
         "page": page
     }
     token = token_cache.get('token', await tvdb_login(client))
-    data = await fetch_and_retry(client, f"{BASE_URL}/series/{series_id}/episodes/official/ita", token=token, type='GET', params=params)
+    data = await fetch_and_retry(client, f"{BASE_URL}/series/{series_id}/episodes/official/kor", token=token, type='GET', params=params)
     return data
 
 
