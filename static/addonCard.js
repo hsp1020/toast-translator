@@ -1,5 +1,6 @@
 /*
-const addonBlackList = [    
+const addonBlackList = [
+    "org.stremio.mammamia",                 // Mamma Mia
 ]
 */
 
@@ -33,49 +34,55 @@ const compatibilityList = [
 ]
 
 
-
 async function loadAddon(url, showError=false, type="default") {
     if (!url) {
         alert("Invalid URL.");
         return;
     }
+
     try {
         const response = await fetch(url);
         if (response.ok) {
             const manifest = await response.json();
             const serverUrl = window.location.origin;
-            // 'translated' 속 성  확 인 은  유 지 하 되 , ID 호 환 성  검 사 는  제 거 합 니 다 .
-            if ("translated" in manifest && !url.includes(serverUrl)) {
-                return;
+            if (compatibilityList.some(id => manifest.id.startsWith(id))) {
+                if ("translated" in manifest && !url.includes(serverUrl)) {
+                    return;
+                }
+                createAddonCard(manifest, url, type);
+            } else {
+                if (showError) {
+                    alert("Addon non compatibile.");
+                }
             }
-            // 모 든  애 드 온 에  대 해  카 드  생 성  함 수 를  호 출 합 니 다 .
-            createAddonCard(manifest, url, type);
         } else {
             if (showError){
                 alert(`Error: ${response.status}`);
             }
         }
+
     } catch (error) {
         console.log(error);
     }
 }
 
-
 function createAddonCard(manifest, url, type="default") {
     const container = document.getElementById("addons-container");
+
     const addonCard = document.createElement("div");
     addonCard.className = "addon-info";
+
     addonCard.appendChild(createAddonHeader(manifest));
     addonCard.appendChild(createAddonDescription(manifest));
     addonCard.appendChild(createAddonVersion(manifest));
     addonCard.appendChild(createSkipPosterOption(manifest));
-    addonCard.appendChild(createToastRatingsOption(manifest));
+
     const actionsDiv = document.createElement("div");
     if (type == "default") {
         actionsDiv.className = "addon-actions";
         const installBtn = createInstallButton(manifest, url);
         actionsDiv.appendChild(installBtn);
-    }
+    } 
     else if (type == "generator") {
         actionsDiv.className = "addon-actions";
         const generateBtn = createGenerateButton(manifest, url);
@@ -84,11 +91,12 @@ function createAddonCard(manifest, url, type="default") {
         actionsDiv.appendChild(copyBtn);
         addonCard.appendChild(createLinkTextBox("", manifest));
     }
+    
+
     addonCard.appendChild(actionsDiv);
     container.appendChild(addonCard);
 }
 
-                
 function createAddonHeader(manifest) {
     const addonHeader = document.createElement("div");
     addonHeader.className = "addon-header";
