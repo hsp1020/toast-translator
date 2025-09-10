@@ -12,7 +12,7 @@ translations_cache.clear()
 RATINGS_SERVER = os.getenv('TR_SERVER', 'https://toastflix-tr-test.hf.space')
 
 
-async def translate_with_api(client: httpx.AsyncClient, text: str, source='en', target='it') -> str:
+async def translate_with_api(client: httpx.AsyncClient, text: str, source='en', target='ko') -> str:
 
     translation = translations_cache.get(text)
     if translation == None:
