@@ -13,6 +13,7 @@ TVDB_USER = os.getenv('TVDB_USER')
 
 BASE_URL = "https://api4.thetvdb.com/v4"
 IMAGE_URL = "https://thetvdb.com"
+EPISODE_PAGE = 500
 
 # Cache set
 token_cache = Cache(maxsize=1, ttl=timedelta(days=29).total_seconds())
@@ -33,6 +34,9 @@ async def fetch_and_retry(client: httpx.AsyncClient, url: str, token='', type='G
 
         if response.status_code == 200:
             data = response.json()
+            # Cache token
+            if type == 'POST':
+                token_cache.set('token', data['data']['token'])
             return data
 
         else:
@@ -56,19 +60,28 @@ async def tvdb_login(client: httpx.AsyncClient) -> str:
         return token
 
 
-# Seson detail with episodes
+# Season detail with episodes
 async def get_season_details(client: httpx.AsyncClient, season_id: int):
     token = token_cache.get('token', await tvdb_login(client))
     data = await fetch_and_retry(client, f"{BASE_URL}/seasons/{season_id}/extended", token=token, type='GET')
     return data
 
+# Series detail with episodes
+async def get_translated_episodes(client: httpx.AsyncClient, series_id: int, page: int):
+    params = {
+        "page": page
+    }
+    token = token_cache.get('token', await tvdb_login(client))
+    data = await fetch_and_retry(client, f"{BASE_URL}/series/{series_id}/episodes/official/ita", token=token, type='GET', params=params)
+    return data
+
 
 # Seson detail with episodes
-async def get_series_details(client: httpx.AsyncClient, season_id: int):
+async def get_series_details(client: httpx.AsyncClient, series_id: int):
     params = {
         "meta": "episodes",
         "short": True
     }
     token = token_cache.get('token', await tvdb_login(client))
-    data = await fetch_and_retry(client, f"{BASE_URL}/series/{season_id}/extended", token=token, type='GET', params=params)
+    data = await fetch_and_retry(client, f"{BASE_URL}/series/{series_id}/extended", token=token, type='GET', params=params)
     return data

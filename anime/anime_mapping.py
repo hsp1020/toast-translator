@@ -1,4 +1,6 @@
 import httpx
+import bisect
+import json
 
 # Map for IDs
 anime_mapping_url = 'https://raw.githubusercontent.com/Fribb/anime-lists/refs/heads/master/anime-list-full.json'
@@ -6,12 +8,20 @@ anime_mapping_url = 'https://raw.githubusercontent.com/Fribb/anime-lists/refs/he
 # Map for season/episode
 anime_db_map_url = 'https://raw.githubusercontent.com/Kometa-Team/Anime-IDs/master/anime_ids.json'
 
+# Load anidb Extension from file
+with open("anime/anidb_extension.json", "r", encoding="utf-8") as f:
+    anidb_extension = json.load(f) 
+
+# Load anime mapping Extension from file
+with open("anime/anime_mapping_extension.json", "r", encoding="utf-8") as f:
+    anime_mapping_extension = json.load(f) 
+
 
 def load_kitsu_map() -> dict:
     """
     Mappa per convertire un id kitsu in un id imdb
     """
-    raw_map = httpx.Client().get(anime_mapping_url).json()
+    raw_map = httpx.Client().get(anime_mapping_url).json() + anime_mapping_extension
     mapping_list = {}
 
     for item in raw_map:
@@ -27,7 +37,7 @@ def load_mal_map() -> dict:
     """
     Mappa per convertire un id mal in un id imdb
     """
-    raw_map = httpx.Client().get(anime_mapping_url).json()
+    raw_map = httpx.Client().get(anime_mapping_url).json() + anime_mapping_extension
     mapping_list = {}
 
     for item in raw_map:
@@ -46,8 +56,9 @@ def load_imdb_map() -> dict:
     Serve per incorporare tutti le stagioni in un unico id (imdb)
     """
 
-    raw_map = httpx.Client().get(anime_mapping_url).json()
-    anidb_map = httpx.Client().get(anime_db_map_url).json()
+    raw_map = httpx.Client().get(anime_mapping_url).json() + anime_mapping_extension
+    with httpx.Client() as client:
+        anidb_map = {**client.get(anime_db_map_url).json(), **anidb_extension}
     map = {}
 
     for item in raw_map:
@@ -71,13 +82,7 @@ def load_imdb_map() -> dict:
             if kitsu_id != None and anidb_id != None:
                 kitsu_id, anidb_id = str(kitsu_id), str(anidb_id)
                 map[imdb_id]['anidb_ids'].append(anidb_id)
-                map[imdb_id]['kitsu_ids'].append({
-                    kitsu_id: {
-                        "season": anidb_map[anidb_id].get('tvdb_season'),
-                        "epoffset": anidb_map[anidb_id].get('tvdb_epoffset')
-                    }
-                })
-
+                insert_sorted_kitsu_insort(map[imdb_id]['kitsu_ids'], kitsu_id, anidb_map[anidb_id].get('tvdb_season'), anidb_map[anidb_id].get('tvdb_epoffset'))
             if mal_id != None:
                 mal_id = str(mal_id)
                 map[imdb_id]['mal_ids'].append(mal_id)
@@ -101,6 +106,26 @@ def load_kitsu_to_anidb_map():
     
     return map
 
+def insert_sorted_kitsu_insort(kitsu_list, kitsu_id, season, epoffset):
+    """
+    Inserisce un nuovo kitsu_id nella lista kitsu_list già ordinata
+    per season e poi per epoffset, usando bisect.insort.
+    """
+    new_entry = {kitsu_id: {"season": season, "epoffset": epoffset}}
+    # crea una chiave per ordinamento
+    new_key = (season or 0, epoffset or 0)
+
+    # crea una lista ausiliaria di chiavi
+    keys = [(list(entry.values())[0].get("season") or 0,
+             list(entry.values())[0].get("epoffset") or 0)
+            for entry in kitsu_list]
+
+    # trova la posizione di inserimento
+    idx = bisect.bisect_left(keys, new_key)
+
+    # inserisci il dict nella posizione corretta
+    kitsu_list.insert(idx, new_entry)
+
 
 def load_anidb_map():
     map = httpx.Client().get(anime_db_map_url).json()
@@ -111,7 +136,7 @@ if __name__ == '__main__':
     anidb_map = load_anidb_map()
     print(len(imdb_map))
 
-    titans = imdb_map['tt21209876']
+    titans = imdb_map['tt2560140']
     #print(anidb_map["9541"])
     print(titans)
     """

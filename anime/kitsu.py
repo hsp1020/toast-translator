@@ -9,14 +9,21 @@ kitsu_addon_url = 'https://anime-kitsu.strem.fun'
 kitsu_cache = Cache(maxsize=float('inf'), ttl=timedelta(days=30).total_seconds())
 kitsu_cache.clear()
 
-# Load kitsu -> imdb converter
-imdb_map = anime_mapping.load_kitsu_map()
-for kitsu_id, imdb_id in imdb_map.items():
-	kitsu_cache.set(f"kitsu:{kitsu_id}", imdb_id)
+# Anime mapping loading
+imdb_ids_map = None
+imdb_map = None
 
-# Load season / episode map
-imdb_ids_map = anime_mapping.load_imdb_map()
+def load_anime_map():
+	global imdb_ids_map, imdb_map
+	# Load kitsu -> imdb converter
+	imdb_map = anime_mapping.load_kitsu_map()
+	for kitsu_id, imdb_id in imdb_map.items():
+		kitsu_cache.set(f"kitsu:{kitsu_id}", imdb_id)
 
+	# Load season / episode map
+	imdb_ids_map = anime_mapping.load_imdb_map()
+
+load_anime_map()
 
 async def convert_to_imdb(kitsu_id: str, type: str) -> str:
 	is_converted = False
@@ -56,7 +63,6 @@ def parse_meta_videos(videos: dict, imdb_id: str) -> dict:
 			special_offset += 1
 
 	return videos
-
 
 
 

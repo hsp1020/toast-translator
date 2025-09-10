@@ -9,14 +9,21 @@ kitsu_addon_url = 'https://anime-kitsu.strem.fun'
 mal_cache = Cache(maxsize=float('inf'), ttl=timedelta(days=30).total_seconds())
 mal_cache.clear()
 
-# Load MAL -> IMDB converter
-imdb_map = anime_mapping.load_mal_map()
-for mal_id, imdb_id in imdb_map.items():
-	mal_cache.set(f"mal:{mal_id}", imdb_id)
+# Anime mapping loading
+imdb_ids_map = None
+imdb_map = None
 
-# Load season / episode map
-imdb_ids_map = anime_mapping.load_imdb_map()
+def load_anime_map():
+	global imdb_ids_map, imdb_map
+	# Load MAL -> IMDB converter
+	imdb_map = anime_mapping.load_mal_map()
+	for mal_id, imdb_id in imdb_map.items():
+		mal_cache.set(f"mal:{mal_id}", imdb_id)
 
+	# Load season / episode map
+	imdb_ids_map = anime_mapping.load_imdb_map()
+
+load_anime_map()
 
 async def convert_to_imdb(mal_id: str, type: str) -> str:
 	is_converted = False

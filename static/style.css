@@ -33,9 +33,11 @@ body {
 }
 
 .container {
-    width: min(880px, 94vw);
+    width: 100%;
+    max-width: 880px;
     max-height: 92vh;
-    overflow-y: auto;
+    overflow-y: auto;      /* scroll verticale solo se necessario */
+    overflow-x: hidden;    /* nasconde scroll orizzontale */
     padding: 36px 28px;
     border-radius: 18px;
     background: linear-gradient(180deg, rgba(18,19,32,0.85), rgba(18,19,32,0.75));
@@ -68,8 +70,32 @@ body {
     margin-bottom: 20px;
 }
 
-.login-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-.add-group { display: none; width: 100%; gap: 10px; }
+
+.login-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    width: 100%; 
+}
+
+.add-group { 
+    display: none; 
+    flex-direction: row; 
+    gap: 12px; 
+    width: 100%; 
+}
+
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+textarea,
+button,
+.addon-info {
+    max-width: 100%;
+    box-sizing: border-box;   /* previene overflow orizzontale */
+    word-break: break-word;   /* per testi lunghi */
+}
 
 input[type="email"],
 input[type="password"],
@@ -118,6 +144,7 @@ button:hover {
     color: var(--text);
     position: relative;
     box-shadow: 0 0 20px rgba(0,255,240,0.06);
+    overflow-wrap: break-word;
 }
 .addon-info::before {
     content: "";
@@ -135,15 +162,29 @@ button:hover {
 .addon-info h3 { margin: 0 0 6px 0; font-size: 18px; letter-spacing: 0.5px; }
 .addon-info p { margin: 6px 0; color: var(--muted); }
 
-.addon-actions { display: flex; gap: 10px; margin-top: 12px; }
-.addon-actions button { flex: 1; padding: 10px 14px; }
+.addon-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.addon-actions button { flex: 1 1 auto; padding: 10px 14px; }
 .install-btn { background: linear-gradient(90deg, rgba(0,255,163,0.18), rgba(0,255,240,0.18)); color: var(--text); }
 .install-btn:hover { box-shadow: 0 0 14px rgba(0,255,163,0.35), 0 0 24px rgba(0,255,240,0.25); }
 
-.translate-button { display: flex; gap: 10px; margin-top: 14px; visibility: hidden;}
+.translate-button {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+    visibility: hidden;
+    flex-wrap: nowrap;       /* impedisce ai pulsanti di andare a capo */
+    overflow-x: auto;        /* permette scroll orizzontale se necessario */
+}
+
+.translate-button button {
+    flex: 1 1 auto;          /* si ridimensionano proporzionalmente */
+    min-width: 120px;        /* evita che diventino troppo piccoli */
+    white-space: nowrap;      /* testo su una riga sola */
+    box-sizing: border-box;
+}
 
 .addon-logo { max-width: 60px; max-height: 60px; border-radius: 9px; margin-right: 10px; box-shadow: 0 0 12px rgba(0,255,240,0.2); }
-.addon-header { display: flex; align-items: center; }
+.addon-header { display: flex; align-items: center; flex-wrap: wrap; }
 
 .skip-poster { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .skip-poster input { accent-color: var(--neon-cyan); width: 18px; height: 18px; }
@@ -181,10 +222,22 @@ textarea[readonly] { pointer-events: none; }
     animation: floatGlow 12s ease-in-out infinite alternate;
 }
 
+.loader {
+    border: 6px solid rgba(255, 255, 255, 0.2);
+    border-top: 6px solid var(--neon-cyan);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin: 20px auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 @keyframes floatGlow {
     from { transform: translateY(0) translateX(0); }
     to { transform: translateY(-20px) translateX(30px); }
 }
-
-
-

@@ -6,9 +6,11 @@ import httpx
 import asyncio
 import urllib.parse
 import translator
+import math
 
 REQUEST_TIMEOUT = 100
 MAX_CAST_SEARCH = 3
+TMDB_ERROR_EPISODE_OFFSET = 50
 
 async def build_metadata(id: str, type: str):
     tmdb_id = None
@@ -86,12 +88,12 @@ async def build_metadata(id: str, type: str):
         }
 
         if type == 'series':
-            meta['meta']['videos'] = await series_build_episodes(client, id, tmdb_id, tmdb_data.get('seasons', []), tmdb_data['external_ids']['tvdb_id'])
+            meta['meta']['videos'] = await series_build_episodes(client, id, tmdb_id, tmdb_data.get('seasons', []), tmdb_data['external_ids']['tvdb_id'], tmdb_data['number_of_episodes'])
 
         return meta
 
 
-async def series_build_episodes(client: httpx.AsyncClient, imdb_id: str, tmdb_id: str, seasons: list, tvdb_series_id: int) -> list:
+async def series_build_episodes(client: httpx.AsyncClient, imdb_id: str, tmdb_id: str, seasons: list, tvdb_series_id: int, tmdb_episodes_count: int) -> list:
     tasks = []
     videos = []
 
@@ -103,39 +105,42 @@ async def series_build_episodes(client: httpx.AsyncClient, imdb_id: str, tmdb_id
 
     # Anime tvdb mapping
     if 'kitsu' in imdb_id or 'mal' in imdb_id or imdb_id in kitsu.imdb_ids_map:
-        tvdb_response = await tvdb.get_series_details(client, tvdb_series_id)
-        tvdb_seasons = [
-            season for season in tvdb_response['data']['seasons']
-            if season.get('type', {}).get('type') == "official"
-        ]
+        # Use TVDB data
 
-        # Sort by season number
-        tvdb_seasons.sort(key=lambda s: s.get('number', 0))
-
-        # Skip specials season
-        tmdb_offset = len([s for s in tmdb_seasons if s.get('season_number', -1) == 0])
-        tvdb_offset = len([s for s in tvdb_seasons if s.get('number', -1) == 0])
+        # Extract pre translated episodes
+        episodes_tasks = []
+        abs_episode_count = tmdb_episodes_count + TMDB_ERROR_EPISODE_OFFSET
+        total_pages = math.ceil(abs_episode_count / tvdb.EPISODE_PAGE)
+        for i in range(max(1, total_pages)):
+            episodes_tasks.append(tvdb.get_translated_episodes(client, tvdb_series_id, i))
         
-        if len(tmdb_seasons[tmdb_offset:]) != len(tvdb_seasons[tvdb_offset:]):
-            print('Merge TVDB')
-            for episode in tvdb_response['data']['episodes']:
-                videos.append(
-                    {
-                        "tvdb_id": episode['id'],
-                        "name": f"Episodio {episode['number']}",
-                        "season": episode['seasonNumber'],
-                        "number": episode['number'],
-                        "firstAired": episode['aired'] + 'T05:00:00.000Z' if episode['aired'] is not None else None,
-                        "rating": "0",
-                        "overview": '',
-                        "thumbnail": tvdb.IMAGE_URL + episode['image'] if episode['image'] != None else None,
-                        "id": f"{imdb_id}:{episode['seasonNumber']}:{episode['number']}",
-                        "released": episode['aired'] + 'T05:00:00.000Z' if episode['aired'] is not None else None,
-                        "episode": episode['number'],
-                        "description": ''
-                    }
-                )
-            return await translator.translate_episodes(client, videos)
+        translated_episodes = []
+        episodes_tasks_result = await asyncio.gather(*episodes_tasks)
+        for result in episodes_tasks_result:
+            translated_episodes.extend(result['data']['episodes'])
+        
+        # Build episodes meta
+        for episode in translated_episodes:
+            video = {
+                "name": f"Episodio {episode['number']}" if episode['name'] == None else episode['name'],
+                "season": episode['seasonNumber'],
+                "number": episode['number'],
+                "firstAired": episode['aired'] + 'T05:00:00.000Z' if episode['aired'] is not None else None,
+                "rating": "0",
+                "overview": '' if episode['overview'] == None else episode['overview'],
+                "thumbnail": tvdb.IMAGE_URL + episode['image'] if episode['image'] != None else None,
+                "id": f"{imdb_id}:{episode['seasonNumber']}:{episode['number']}",
+                "released": episode['aired'] + 'T05:00:00.000Z' if episode['aired'] is not None else None,
+                "episode": episode['number'],
+                "description": ''
+            }
+
+            # Insert not fully translated episode to try translate it with TMDB
+            if episode['seasonNumber'] != 0 and (episode['name'] == None or episode['overview'] == None):
+                video['tvdb_id'] = episode['id']
+            
+            videos.append(video)
+        return await translator.translate_episodes(client, videos)
 
     
 
