@@ -5,5 +5,40 @@
         "kitsu_id": 48010,
         "type": "ONA",
         "anidb_id": -1
+    },
+    {
+        "_comment": "Avatar: The Last Airbender Book 1: Water",
+        "imdb_id": "tt0417299",
+        "kitsu_id": 7936,
+        "type": "TV",
+        "anidb_id": -2
+    },
+    {
+        "_comment": "Avatar: The Last Airbender Book 2: Earth",
+        "imdb_id": "tt0417299",
+        "kitsu_id": 7937,
+        "type": "TV",
+        "anidb_id": -3
+    },
+    {
+        "_comment": "Avatar: The Last Airbender Book 3: Fire",
+        "imdb_id": "tt0417299",
+        "kitsu_id": 7926,
+        "type": "TV",
+        "anidb_id": -4
+    },
+    {
+        "_comment": "Arcane",
+        "imdb_id": "tt11126994",
+        "kitsu_id": 45469,
+        "type": "ONA",
+        "anidb_id": -5
+    },
+    {
+        "_comment": "Arcane Season 2",
+        "imdb_id": "tt11126994",
+        "kitsu_id": 45515,
+        "type": "ONA",
+        "anidb_id": -6
     }
 ]
