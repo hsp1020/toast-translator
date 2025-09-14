@@ -25,7 +25,7 @@ def load_anime_map():
 
 load_anime_map()
 
-async def convert_to_imdb(kitsu_id: str, type: str) -> str:
+async def convert_to_imdb(kitsu_id: str, type: str):
 	is_converted = False
 	imdb_id = kitsu_cache.get(kitsu_id)
 	if imdb_id == None:
@@ -40,7 +40,10 @@ async def convert_to_imdb(kitsu_id: str, type: str) -> str:
 				kitsu_cache.set(kitsu_id, kitsu_id)
 				return kitsu_id, is_converted
 	else:
-		is_converted = True
+		if 'tt' not in imdb_id:
+			is_converted = False
+		else:
+			is_converted = True
 
 	return imdb_id, is_converted
 

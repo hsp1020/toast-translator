@@ -28,7 +28,6 @@ COMPATIBILITY_ID = ['tt', 'kitsu', 'mal']
 meta_cache = Cache(maxsize=100000, ttl=timedelta(hours=12).total_seconds())
 meta_cache.clear()
 
-
 # Server start
 @asynccontextmanager
 async def lifespan(app: FastAPI):

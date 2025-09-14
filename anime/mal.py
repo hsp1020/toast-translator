@@ -40,6 +40,9 @@ async def convert_to_imdb(mal_id: str, type: str) -> str:
 				mal_cache.set(mal_id, mal_id)
 				return mal_id, is_converted
 	else:
-		is_converted = True
+		if 'tt' not in imdb_id:
+			is_converted = False
+		else:
+			is_converted = True
 
 	return imdb_id, is_converted
