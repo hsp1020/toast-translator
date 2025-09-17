@@ -15,6 +15,7 @@ const compatibilityList = [
     "com.aiostreams.viren070.ed7de9be-ad4",
     "com.aiostreams.viren070.",
     "aiostreams.viren070.com.",
+    "aiostreams.viren070.com.6a412652-01b",
     "aiostreams.viren070.com.f3cddc14-4bb",
     "aiostreamsfortheweebs.midnightignite.me.b036dc3e-685",
     "aiostreamsfortheweebs.midnightignite.me.",
