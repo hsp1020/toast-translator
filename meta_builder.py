@@ -179,11 +179,16 @@ def extract_series_episode_runtime(tmdb_data: dict) -> str:
 
     return str(runtime) + ' min'
 
-
 def extract_logo(fanart_data: dict, tmdb_data: dict) -> str:
-    # Try TMDB logo
+    # Try TMDB logo (excluding .svg files)
     if len(tmdb_data.get('images', {}).get('logos', [])) > 0:
-        return tmdb.TMDB_POSTER_URL + tmdb_data['images']['logos'][0]['file_path']
+        for logo in tmdb_data['images']['logos']:
+            logo_path = logo.get('file_path', '')
+            # .svg 확장자가 아닌 로고를 찾음
+            if not logo_path.lower().endswith('.svg'):
+                return tmdb.TMDB_POSTER_URL + logo_path
+        # .svg 파일만 있는 경우 로고를 반환하지 않음
+        pass
 
     # FanArt
     en_logo = ''
