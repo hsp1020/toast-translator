@@ -184,29 +184,11 @@ def extract_logo(fanart_data: dict, tmdb_data: dict) -> str:
     if len(tmdb_data.get('images', {}).get('logos', [])) > 0:
         for logo in tmdb_data['images']['logos']:
             logo_path = logo.get('file_path', '')
-            # .svg 확장자가 아닌 로고를 찾음
             if not logo_path.lower().endswith('.svg'):
                 return tmdb.TMDB_POSTER_URL + logo_path
-        # .svg 파일만 있는 경우 로고를 반환하지 않음
-        pass
 
-    # FanArt
-    en_logo = ''
-    # Try HD logo
-    for logo in fanart_data.get('hdmovielogo', []):
-        if logo['lang'] == 'en':
-            en_logo = logo['url']
-        elif logo['lang'] == 'ko':
-            return logo['url']
-    
-    # Try normal logo
-    for logo in fanart_data.get('movielogo', []):
-        if logo['lang'] == 'en':
-            en_logo = logo['url']
-        elif logo['lang'] == 'ko':
-            return logo['url']
-        
-    return en_logo
+    # TMDB 로고가 없으면 바로 ''
+    return ''
 
 
 def extract_cast(tmdb_data: dict):
