@@ -180,14 +180,14 @@ def extract_series_episode_runtime(tmdb_data: dict) -> str:
     return str(runtime) + ' min'
 
 def extract_logo(fanart_data: dict, tmdb_data: dict) -> str:
-    # Try TMDB logo (excluding .svg files)
-    if len(tmdb_data.get('images', {}).get('logos', [])) > 0:
-        for logo in tmdb_data['images']['logos']:
-            logo_path = logo.get('file_path', '')
-            if not logo_path.lower().endswith('.svg'):
-                return tmdb.TMDB_POSTER_URL + logo_path
+    # TMDB 한국어 로고만 탐색 (SVG 제외)
+    logos = tmdb_data.get('images', {}).get('logos', [])
+    for logo in logos:
+        logo_path = logo.get('file_path', '')
+        if logo.get('iso_639_1') == 'ko' and not logo_path.lower().endswith('.svg'):
+            return tmdb.TMDB_POSTER_URL + logo_path
 
-    # TMDB 로고가 없으면 바로 ''
+    # 한국어 로고가 없으면 빈 문자열 반환
     return ''
 
 
