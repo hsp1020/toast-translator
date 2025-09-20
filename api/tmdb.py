@@ -27,12 +27,8 @@ async def fetch_and_retry(client: httpx.AsyncClient, id: str, url: str, params={
 
         if response.status_code == 200:
             meta_dict = response.json()
-
-            # Only imdb_id cache save
-            if 'tt' in id:
-                meta_dict['imdb_id'] = id
-                tmp_cache.set(id, meta_dict)
-                
+            meta_dict['imdb_id'] = id
+            tmp_cache.set(id, meta_dict)
             return meta_dict
 
         elif response.status_code == 429:
