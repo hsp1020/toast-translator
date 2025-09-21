@@ -52,8 +52,8 @@ stremio_headers = {
 }
 
 tmdb_addons_pool = [
-    'https://hsptmdb4.duckdns.org/%7B%22provide_imdbId%22%3A%22true%22%2C%22language%22%3A%22ko-KR%22%7D' # Madari    
     'https://tmdb.elfhosted.com/%7B%22provide_imdbId%22%3A%22true%22%2C%22language%22%3A%22ko-KR%22%7D', # Elfhosted
+    'https://hsptmdb4.duckdns.org/%7B%22provide_imdbId%22%3A%22true%22%2C%22language%22%3A%22ko-KR%22%7D' # Madari    
     'https://94c8cb9f702d-tmdb-addon.baby-beamup.club/%7B%22provide_imdbId%22%3A%22true%22%2C%22language%22%3A%22ko-KR%22%7D', # Official
 ]
 
