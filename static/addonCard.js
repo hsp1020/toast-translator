@@ -11,6 +11,9 @@ const compatibilityList = [
     "tmdb-addon",                       // TMDB Addon
     "org.stremio.aiolists",
     "aio-metadata",
+    "aio.atbphosting.com",
+    "aio.atbphosting.com.",
+    "aio.atbphosting.com.7b72d797-f80",
     "com.aiostreams.viren070",
     "com.aiostreams.viren070.ed7de9be-ad4",
     "com.aiostreams.viren070.",
