@@ -97,8 +97,8 @@ async def link_generator(request: Request):
 @app.get('/{addon_url}/{user_settings}/manifest.json')
 async def get_manifest(addon_url):
     addon_url = decode_base64_url(addon_url)
-    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
-        response = await client.get(f"{addon_url}/manifest.json")
+    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT, verify=False) as client:
+        response = await client.get(f"{addon_url}/manifest.json", verify=False)
         manifest = response.json()
 
     is_translated = manifest.get('translated', False)
@@ -135,8 +135,8 @@ async def get_catalog(response: Response, addon_url, type: str, user_settings: s
     user_settings = parse_user_settings(user_settings)
     addon_url = decode_base64_url(addon_url)
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT) as client:
-        response = await client.get(f"{addon_url}/catalog/{type}/{path}")
+    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT, verify=False) as client:
+        response = await client.get(f"{addon_url}/catalog/{type}/{path}", verify=False)
 
         try:
             catalog = response.json()
@@ -164,7 +164,7 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
     del headers['host']
     addon_url = decode_base64_url(addon_url)
     global tmdb_addon_meta_url
-    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT) as client:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT, verify=False) as client:
 
         # Get from cache
         meta = meta_cache.get(id)
@@ -179,8 +179,8 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
             if 'tt' in id:
                 tmdb_id = await tmdb.convert_imdb_to_tmdb(id)
                 tasks = [
-                    client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json") if USE_TMDB_ADDON else meta_builder.build_metadata(id, type),
-                    client.get(f"{cinemeta_url}/meta/{type}/{id}.json")
+                    client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json", verify=False) if USE_TMDB_ADDON else meta_builder.build_metadata(id, type),
+                    client.get(f"{cinemeta_url}/meta/{type}/{id}.json", verify=False)
                 ]
                 metas = await asyncio.gather(*tasks)
                 
@@ -193,7 +193,7 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                         else:
                             index = tmdb_addons_pool.index(tmdb_addon_meta_url)
                             tmdb_addon_meta_url = tmdb_addons_pool[(index + 1) % len(tmdb_addons_pool)]
-                            metas[0] = await client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json")
+                            metas[0] = await client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json", verify=False)
                             if metas[0].status_code == 200:
                                 tmdb_meta = metas[0].json()
                                 break
@@ -263,7 +263,7 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                         tmdb_id = await tmdb.convert_imdb_to_tmdb(imdb_id)
                         # TMDB Addons retry
                         for retry in range(6):
-                            response = await client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json")
+                            response = await client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json", verify=False)
                             if response.status_code == 200:
                                 meta = response.json()
                                 break
@@ -283,11 +283,11 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                             meta['meta']['videos'] = videos
                     else:
                         # Get meta from kitsu addon
-                        response = await client.get(f"{kitsu.kitsu_addon_url}/meta/{type}/{id.replace(':','%3A')}.json")
+                        response = await client.get(f"{kitsu.kitsu_addon_url}/meta/{type}/{id.replace(':','%3A')}.json", verify=False)
                         meta = response.json()
                 else:
                     # Get meta from kitsu addon
-                    response = await client.get(f"{kitsu.kitsu_addon_url}/meta/{type}/{id.replace(':','%3A')}.json")
+                    response = await client.get(f"{kitsu.kitsu_addon_url}/meta/{type}/{id.replace(':','%3A')}.json", verify=False)
                     meta = response.json()
 
             # Not compatible id -> redirect to original addon
