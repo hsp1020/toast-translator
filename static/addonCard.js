@@ -49,16 +49,14 @@ async function loadAddon(url, showError=false, type="default") {
         if (response.ok) {
             const manifest = await response.json();
             const serverUrl = window.location.origin;
-            if (compatibilityList.some(id => manifest.id.startsWith(id))) {
-                if ("translated" in manifest && !url.includes(serverUrl)) {
-                    return;
-                }
-                createAddonCard(manifest, url, type);
-            } else {
-                if (showError) {
-                    alert("Addon non compatibile.");
-                }
+
+            // 화이트리스트 / 블랙리스트 제거
+            if ("translated" in manifest && !url.includes(serverUrl)) {
+                return;
             }
+
+            createAddonCard(manifest, url, type);
+
         } else {
             if (showError){
                 alert(`Error: ${response.status}`);
@@ -69,6 +67,7 @@ async function loadAddon(url, showError=false, type="default") {
         console.log(error);
     }
 }
+
 
 function createAddonCard(manifest, url, type="default") {
     const container = document.getElementById("addons-container");
