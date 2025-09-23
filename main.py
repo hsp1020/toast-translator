@@ -97,7 +97,7 @@ async def link_generator(request: Request):
 @app.get('/{addon_url}/{user_settings}/manifest.json')
 async def get_manifest(addon_url):
     addon_url = decode_base64_url(addon_url)
-    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT, verify=False) as client:
+    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
         response = await client.get(f"{addon_url}/manifest.json")
         manifest = response.json()
 
@@ -128,13 +128,14 @@ async def get_manifest(addon_url):
 
 @app.get('/{addon_url}/{user_settings}/catalog/{type}/{path:path}')
 async def get_catalog(response: Response, addon_url, type: str, user_settings: str, path: str):
+    # Cinemeta last-videos
     if 'last-videos' in path:
         return RedirectResponse(f"{cinemeta_url}/catalog/{type}/{path}")
     
     user_settings = parse_user_settings(user_settings)
     addon_url = decode_base64_url(addon_url)
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT, verify=False) as client:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT) as client:
         response = await client.get(f"{addon_url}/catalog/{type}/{path}")
 
         try:
@@ -163,12 +164,16 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
     del headers['host']
     addon_url = decode_base64_url(addon_url)
     global tmdb_addon_meta_url
-    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT, verify=False) as client:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=REQUEST_TIMEOUT) as client:
 
+        # Get from cache
         meta = meta_cache.get(id)
+
+        # Return cached meta
         if meta != None:
             return json_response(meta)
 
+        # Not in cache
         else:
             # Handle imdb ids
             if 'tt' in id:
@@ -180,6 +185,7 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                 metas = await asyncio.gather(*tasks)
                 
                 if USE_TMDB_ADDON:
+                    # TMDB addon retry and switch addon
                     for retry in range(6):
                         if metas[0].status_code == 200:
                             tmdb_meta = metas[0].json()
@@ -196,7 +202,9 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
 
                 cinemeta_meta = metas[1].json()
                 
+                # Not empty tmdb meta
                 if len(tmdb_meta.get('meta', [])) > 0:
+                    # Not merge anime
                     if id not in kitsu.imdb_ids_map:
                         tasks = []
                         meta, merged_videos = meta_merger.merge(tmdb_meta, cinemeta_meta)
@@ -216,6 +224,8 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                                 meta['meta']['description'] = task
                     else:
                         meta = tmdb_meta
+
+                # Empty tmdb_data
                 else:
                     if len(cinemeta_meta.get('meta', [])) > 0:
                         meta = cinemeta_meta
@@ -233,25 +243,35 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                             description = await translator.translate_with_api(client, description)
 
                         meta['meta']['description'] = description
+                    
+                    # Empty cinemeta and tmdb return empty meta
                     else:
                         return json_response({})
+                    
+                
+            # Handle kitsu and mal ids
             elif 'kitsu' in id or 'mal' in id:
+                # Try convert kitsu to imdb
                 if 'kitsu' in id:
                     imdb_id, is_converted = await kitsu.convert_to_imdb(id, type)
                 else:
                     imdb_id, is_converted = await mal.convert_to_imdb(id.replace('_',':'), type)
 
                 if is_converted:
+
                     if USE_TMDB_ADDON:
                         tmdb_id = await tmdb.convert_imdb_to_tmdb(imdb_id)
+                        # TMDB Addons retry
                         for retry in range(6):
                             response = await client.get(f"{tmdb_addon_meta_url}/meta/{type}/{tmdb_id}.json")
                             if response.status_code == 200:
                                 meta = response.json()
                                 break
                             else:
+                                # Loop addon pool
                                 index = tmdb_addons_pool.index(tmdb_addon_meta_url)
                                 tmdb_addon_meta_url = tmdb_addons_pool[(index + 1) % len(tmdb_addons_pool)]
+                                print(f"Switch to {tmdb_addon_meta_url}")
                     else:
                         meta = await meta_builder.build_metadata(imdb_id, type)
 
@@ -262,33 +282,40 @@ async def get_meta(request: Request,response: Response, addon_url, type: str, id
                             videos = kitsu.parse_meta_videos(meta['meta']['videos'], imdb_id)
                             meta['meta']['videos'] = videos
                     else:
+                        # Get meta from kitsu addon
                         response = await client.get(f"{kitsu.kitsu_addon_url}/meta/{type}/{id.replace(':','%3A')}.json")
                         meta = response.json()
                 else:
+                    # Get meta from kitsu addon
                     response = await client.get(f"{kitsu.kitsu_addon_url}/meta/{type}/{id.replace(':','%3A')}.json")
                     meta = response.json()
+
+            # Not compatible id -> redirect to original addon
             else:
                 return RedirectResponse(f"{addon_url}/meta/{type}/{id}.json")
 
-        meta['meta']['id'] = id
-        meta_cache.set(id, meta)
-        return json_response(meta)
+
+            meta['meta']['id'] = id
+            meta_cache.set(id, meta)
+            return json_response(meta)
 
 
+# Subs redirect
 @app.get('/{addon_url}/{user_settings}/subtitles/{path:path}')
 async def get_subs(addon_url, path: str):
     addon_url = decode_base64_url(addon_url)
     return RedirectResponse(f"{addon_url}/subtitles/{path}")
 
+# Stream redirect
 @app.get('/{addon_url}/{user_settings}/stream/{path:path}')
-async def get_stream(addon_url, path: str):
+async def get_subs(addon_url, path: str):
     addon_url = decode_base64_url(addon_url)
     return RedirectResponse(f"{addon_url}/stream/{path}")
 
+# Anime map reloader
 @app.get('/map_reload')
 async def reload_anime_mapping():
     pass
-
 
 def decode_base64_url(encoded_url):
     padding = '=' * (-len(encoded_url) % 4)
@@ -297,13 +324,16 @@ def decode_base64_url(encoded_url):
     return decoded_bytes.decode('utf-8')
 
 
+# Anime only
 async def remove_duplicates(catalog) -> None:
     unique_items = []
     seen_ids = set()
     
     for item in catalog['metas']:
+
         if 'kitsu' in item['id']:
             item['imdb_id'], is_converted = await kitsu.convert_to_imdb(item['id'], item['type'])
+
         elif 'mal_' in item['id']:
             item['imdb_id'], is_converted = await mal.convert_to_imdb(item['id'].replace('_',':'), item['type'])
 
