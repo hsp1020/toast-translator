@@ -10,7 +10,7 @@ import math
 import json
 
 REQUEST_TIMEOUT = 100
-MAX_CAST_SEARCH = 100
+MAX_CAST_SEARCH = 99
 TMDB_ERROR_EPISODE_OFFSET = 50
 
 # Load TMDB exceptions
