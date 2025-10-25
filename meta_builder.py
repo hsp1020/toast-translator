@@ -85,7 +85,7 @@ async def build_metadata(imdb_id: str, type: str, language: str, tmdb_key: str):
         poster_path = tmdb_data.get('poster_path', '')
         backdrop_path = tmdb_data.get('backdrop_path', '')
         slug = f"{type}/{title.lower().replace(' ', '-')}-{tmdb_data.get('imdb_id', '').replace('tt', '')}"
-        logo = extract_logo(fanart_data, tmdb_data, cinemeta_data, language)
+        logo = extract_logo(fanart_data, tmdb_data)
         directors, writers= extract_crew(tmdb_data)
         cast = extract_cast(tmdb_data)
         genres = extract_genres(tmdb_data)
