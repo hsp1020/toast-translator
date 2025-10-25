@@ -10,9 +10,9 @@ import math
 import json
 
 REQUEST_TIMEOUT = 100
-MAX_CAST_SEARCH = 3
+MAX_CAST_SEARCH = 15
 TMDB_ERROR_EPISODE_OFFSET = 50
-MAX_TRANSLATE_EPISODES = 20
+MAX_TRANSLATE_EPISODES = 30
 
 # Load TMDB exceptions
 with open("anime/tmdb_exceptions.json", "r", encoding="utf-8") as f:
