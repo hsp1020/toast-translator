@@ -20,7 +20,8 @@ def merge(tmdb: dict, cinemeta: dict) -> dict:
 
     for key in tmdb['meta']:
 
-        if key == 'logo' and tmdb['meta'].get('logo', '') == '':
+        if key == 'logo':
+            new_meta['meta']['logo'] = tmdb['meta'].get('logo', '')
             continue
         if key == 'description' and tmdb['meta'].get('description', '') == '':
             continue
