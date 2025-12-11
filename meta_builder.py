@@ -85,7 +85,7 @@ async def build_metadata(imdb_id: str, type: str, language: str, tmdb_key: str):
         poster_path = tmdb_data.get('poster_path', '')
         backdrop_path = tmdb_data.get('backdrop_path', '')
         slug = f"{type}/{title.lower().replace(' ', '-')}-{tmdb_data.get('imdb_id', '').replace('tt', '')}"
-        logo = extract_logo(fanart_data, tmdb_data, cinemeta_data, language)
+        logo = extract_logo(fanart_data, tmdb_data)
         directors, writers= extract_crew(tmdb_data)
         cast = extract_cast(tmdb_data)
         genres = extract_genres(tmdb_data)
@@ -234,36 +234,16 @@ def extract_series_episode_runtime(tmdb_data: dict, cinemeta_data: dict) -> str:
 
     return str(runtime) + ' min'
 
+def extract_logo(fanart_data: dict, tmdb_data: dict) -> str:
+    # TMDB 한국어 로고만 탐색 (SVG 제외)
+    logos = tmdb_data.get('images', {}).get('logos', [])
+    for logo in logos:
+        logo_path = logo.get('file_path', '')
+        if logo.get('iso_639_1') == 'ko' and not logo_path.lower().endswith('.svg'):
+            return tmdb.TMDB_POSTER_URL + logo_path
 
-def extract_logo(fanart_data: dict, tmdb_data: dict, cinemeta_data: dict, language: str) -> str:
-    lang_iso_639_1 = language.split('-')[0]
-    # Try TMDB logo
-    if len(tmdb_data.get('images', {}).get('logos', [])) > 0:
-        for logo in tmdb_data['images']['logos']:
-            if logo['iso_639_1'] == lang_iso_639_1:
-                return tmdb.TMDB_POSTER_URL + logo['file_path']
-
-    # FanArt
-    en_logo = ''
-    # Try HD logo
-    for logo in fanart_data.get('hdmovielogo', []):
-        if logo['lang'] == 'en':
-            en_logo = logo['url']
-        elif logo['lang'] == lang_iso_639_1:
-            return logo['url']
-    
-    # Try normal logo
-    for logo in fanart_data.get('movielogo', []):
-        if logo['lang'] == 'en':
-            en_logo = logo['url']
-        elif logo['lang'] == lang_iso_639_1:
-            return logo['url']
-        
-    # Cinemeta
-    if not en_logo:
-        return cinemeta_data.get('meta', {}).get('logo')
-    else:
-        return en_logo
+    # 한국어 로고가 없으면 빈 문자열 반환
+    return ''
 
 
 def extract_cast(tmdb_data: dict):
